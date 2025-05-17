@@ -1,9 +1,34 @@
 const Post = require("../models/post.model");
 
-async function createPost(req, res) {
-  console.log(req.user);
 
-  console.log(req.body);
+
+
+async function getPosts(req, res) {
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
+  try {
+    const posts = await Post.find()
+      .skip(skip)
+      .limit(limit)
+      .populate("createdBy", "name email");
+
+    const totalPosts = await Post.countDocuments();
+
+    return res.status(200).json({
+      message: "Posts fetched successfully",
+      success: true,
+      data: posts,
+      totalPosts,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+
+async function createPost(req, res) {
+  
   const { title, description, content, coverPhoto, status } = req.body;
 
   if (!title) {
@@ -32,4 +57,4 @@ async function createPost(req, res) {
   });
 }
 
-module.exports = { createPost };
+module.exports = { createPost,getPosts };
